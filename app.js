@@ -46,9 +46,9 @@ app.get("/", function (req, res) {
         } else {
           console.log("Successfully saved default items to the db");
         }
-        
+
       });
-res.redirect("/");
+      res.redirect("/");
     } else {
       res.render("lists", {
         listTitle: "Today",
@@ -100,20 +100,27 @@ app.post("/", function (request, response) {
 });
 app.post("/delete", function (req, res) {
   const checkedItemId = req.body.checkbox;
-  const listName= req.body.listName;
-  if (listName==="Today") {
+  const listName = req.body.listName;
+  if (listName === "Today") {
     Item.findByIdAndRemove(checkedItemId, function (err) {
-    if (!err) {
-      console.log("Item successfully deleted from the database");
-      res.redirect("/");
-    }
-  });
+      if (!err) {
+        console.log("Item successfully deleted from the database");
+        res.redirect("/");
+      }
+    });
   }
-  else{
-
+  else {
+    List.findOneAndUpdate({ name: listName }, { $pull: { items: { _id: checkedItemId } } }, function (err, foundList) {
+      if (!err) {
+        res.redirect("/" + listName);
+      }
+    });
   }
 })
-
-app.listen(process.env.Port || 3000, function () {
+let port = process.env.PORT;
+if (port== null || port== "") {
+  port= 3000;
+}
+app.listen(port, function () {
   console.log("Server started at port 3000");
 });
